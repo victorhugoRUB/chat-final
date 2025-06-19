@@ -36,13 +36,6 @@ CREATE TABLE "Chamado" (
     CONSTRAINT "Chamado_tecnicoId_fkey" FOREIGN KEY ("tecnicoId") REFERENCES "Tecnico" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
--- CreateTable
-CREATE TABLE "InformacoesExtras" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "horarioFuncionamento" TEXT NOT NULL,
-    "formasAtendimento" TEXT NOT NULL
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "Usuario_matricula_key" ON "Usuario"("matricula");
 
