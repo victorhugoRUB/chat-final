@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bot de Suporte</title>
+</head>
+<body>
+
+  <h1>Bem-vindo ao Suporte de TI</h1>
+  <p>Fale com nosso assistente virtual para abrir ou consultar chamados.</p>
+
+  <!-- Dialogflow Messenger -->
+  <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+  <df-messenger
+    intent="WELCOME"
+    chat-title="bot-suporte-final"
+    agent-id="1ab08ee8-3c69-4a35-b18a-5e3977adf898"
+    language-code="pt-br">
+  </df-messenger>
+
+</body>
+</html>
