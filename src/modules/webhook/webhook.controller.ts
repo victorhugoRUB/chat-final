@@ -1,108 +1,129 @@
-
-
 import { Controller, Post, Body } from '@nestjs/common';
+import { CursoService } from '../cursos/curso.service';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { randomUUID } from 'crypto';
 
 @Controller('webhook')
 export class WebhookController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly cursoService: CursoService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Post('dialogflow')
   async dialogflowWebhook(@Body() body: any) {
     const intent = body.queryResult.intent.displayName;
-    const parameters = body.queryResult.parameters;
+    const params = body.queryResult.parameters;
 
     switch (intent) {
-      case 'AbrirChamado':
-        return await this.handleAbrirChamado(parameters);
+      case 'inicio-aluno':
+        return this.handleInicioAluno(params);
 
-      case 'ContinuarNao':
-        return {
-          fulfillmentText: 'Perfeito! Me informe seu nome, matrícula, endereço e telefone para finalizar o chamado.',
-        };
+      case 'visualizar-matricula':
+        return this.handleVisualizarMatricula(params);
 
-      case 'InformarDados':
-        return await this.handleInformarDados(parameters);
+      case 'registrar-matricula':
+        return this.handleRegistrarMatricula(params);
 
       default:
         return {
-          fulfillmentText: 'Desculpe, não entendi. Poderia repetir?',
+          fulfillmentText: 'Desculpe, não entendi sua solicitação.',
         };
     }
   }
 
-  async handleAbrirChamado(params: any) {
-    const servicoNome = params['servico'];
+  async handleInicioAluno(params: any) {
+    const cpf = params['cpf'];
+    const matricula = params['matricula'];
 
-    const servico = await this.prisma.servico.findFirst({
+    const aluno = await this.prisma.aluno.upsert({
       where: {
-        nome: {
-          contains: servicoNome,
-        },
+        cpf: cpf ?? '',
+      },
+      update: {},
+      create: {
+        nome: 'Aluno',
+        cpf: cpf ?? `${Date.now()}-fake`,
+        matricula: matricula ?? `${Date.now()}`,
       },
     });
 
-    if (!servico) {
-      return {
-        fulfillmentText: `O serviço ${servicoNome} não foi encontrado.`,
-      };
-    }
-
     return {
-      fulfillmentText: `O prazo para o serviço ${servico.nome} é de ${servico.prazoAtendimento} minutos. Deseja adicionar mais algum serviço?`,
+      fulfillmentText: `Olá ${aluno.nome}, deseja ver suas matrículas ou se matricular em algum curso?`,
     };
   }
 
-  async handleInformarDados(params: any) {
-    const nome = Array.isArray(params['name']) ? params['name'][0] : params['name'];
-    const matricula = params['matricula'];
-    const endereco = params['endereco'];
-    const telefone = params['telefone'];
-    const servicoNome = params['servico'];
+  async handleVisualizarMatricula(params: any) {
+    const identificador = params['cpf'] ?? params['matricula'];
+    const dados = await this.cursoService.findMatriculas(identificador);
 
-    const servico = await this.prisma.servico.findFirst({
-      where: {
-        nome: {
-          contains: servicoNome,
-        },
-      },
-    });
-
-    if (!servico) {
-      return {
-        fulfillmentText: `O serviço ${servicoNome} não foi encontrado.`,
-      };
+    if ('mensagem' in dados) {
+      return { fulfillmentText: dados.mensagem };
     }
 
-    const usuario = await this.prisma.usuario.upsert({
-      where: { matricula },
-      update: {},
-      create: {
-        nome,
-        matricula,
-        endereco,
-        telefone,
-      },
-    });
-
-    const tecnicos = await this.prisma.tecnico.findMany();
-    const tecnico = tecnicos[Math.floor(Math.random() * tecnicos.length)];
-
-    const protocolo = randomUUID().split('-')[0];
-
-    const chamado = await this.prisma.chamado.create({
-      data: {
-        protocolo,
-        usuarioId: usuario.id,
-        servicoId: servico.id,
-        tecnicoId: tecnico.id,
-        descricao: `Chamado aberto para o serviço ${servico.nome}`,
-      },
-    });
+    const cursos = dados.cursos.length > 0
+      ? dados.cursos.map((c) => `• ${c}`).join('\n')
+      : 'Você ainda não está matriculado em nenhum curso.';
 
     return {
-      fulfillmentText: `Perfeito ${usuario.nome}, seu chamado foi registrado sob o número ${chamado.protocolo}. Em breve nosso técnico ${tecnico.nome} irá atendê-lo.`,
+      fulfillmentText: `Aqui estão suas matrículas:\n${cursos}\n\nDeseja se matricular em algum outro curso?`,
+    };
+  }
+
+  async handleRegistrarMatricula(params: any) {
+    const cursosDesejados: string[] = Array.isArray(params['curso']) ? params['curso'] : [params['curso']];
+    const identificador = params['cpf'] ?? params['matricula'];
+
+    const aluno = await this.prisma.aluno.findFirst({
+      where: {
+        OR: [
+          { cpf: identificador },
+          { matricula: identificador },
+        ],
+      },
+    });
+
+    if (!aluno) {
+      return { fulfillmentText: 'Aluno não encontrado.' };
+    }
+
+    const mensagens: string[] = [];
+
+    for (const nomeCurso of cursosDesejados) {
+      const curso = await this.prisma.curso.findFirst({
+        where: {
+          nome: { contains: nomeCurso },
+        },
+      });
+
+      if (!curso) {
+        mensagens.push(`Curso "${nomeCurso}" não encontrado.`);
+        continue;
+      }
+
+      const jaMatriculado = await this.prisma.matricula.findFirst({
+        where: {
+          alunoId: aluno.id,
+          cursoId: curso.id,
+        },
+      });
+
+      if (jaMatriculado) {
+        mensagens.push(`Você já está matriculado no curso "${curso.nome}".`);
+        continue;
+      }
+
+      await this.prisma.matricula.create({
+        data: {
+          alunoId: aluno.id,
+          cursoId: curso.id,
+        },
+      });
+
+      mensagens.push(`Matrícula realizada com sucesso no curso "${curso.nome}".`);
+    }
+
+    return {
+      fulfillmentText: mensagens.join('\n'),
     };
   }
 }

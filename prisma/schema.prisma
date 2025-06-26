@@ -8,43 +8,29 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-model Usuario {
-  id         Int       @id @default(autoincrement())
-  nome       String
-  matricula  String    @unique
-  endereco   String
-  telefone   String
-
-  chamados   Chamado[]
+model Aluno {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  cpf       String    @unique
+  matricula String    @unique
+  matriculas Matricula[]
 }
 
-model Servico {
-  id               Int       @id @default(autoincrement())
-  nome             String    @unique
-  prazoAtendimento Int       // prazo em minutos
-  
-  chamados         Chamado[]
+model Curso {
+  id        Int       @id @default(autoincrement())
+  nome      String
+  descricao String
+  matriculas Matricula[]
 }
 
-model Tecnico {
-  id       Int       @id @default(autoincrement())
-  nome     String
-  chamados Chamado[]
-}
+model Matricula {
+  id       Int     @id @default(autoincrement())
+  alunoId  Int
+  cursoId  Int
+  data     DateTime @default(now())
 
-model Chamado {
-  id            Int       @id @default(autoincrement())
-  protocolo     String    @unique
-  status        String    @default("Aberto")
-  descricao     String
-  criadoEm      DateTime  @default(now())
-  atualizadoEm  DateTime  @updatedAt
+  aluno    Aluno    @relation(fields: [alunoId], references: [id])
+  curso    Curso    @relation(fields: [cursoId], references: [id])
 
-  usuarioId     Int
-  servicoId     Int
-  tecnicoId     Int
-
-  usuario       Usuario   @relation(fields: [usuarioId], references: [id])
-  servico       Servico   @relation(fields: [servicoId], references: [id])
-  tecnico       Tecnico   @relation(fields: [tecnicoId], references: [id])
+  @@unique([alunoId, cursoId])
 }
