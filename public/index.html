@@ -2,25 +2,39 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Bot de Suporte</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Curso Online - Plataforma de Ensino</title>
 </head>
 <body>
 
-  <h1>Bem-vindo ao Suporte de TI</h1>
-  <p>Fale com nosso assistente virtual para abrir ou consultar chamados.</p>
-    <p>Teste de valores para usuário:</p>
-    <p>Victor Hugo, matricula é 92134113, Rua Chavinho seloko, 50, Presidente Prudente/SP, 1199999-9999</p>
-    <p>Nome Rafael Pedroso, matricula 0010010 moro em Rua top top, 47, Cidade Preta/PA e meu numero é (18)99112-2222</p>
+  <header>
+    <h1>Bem-vindo ao Curso Online</h1>
+    <p>Aqui você pode se matricular, acompanhar seus cursos e tirar dúvidas com nosso assistente virtual.</p>
+  </header>
 
-  <!-- Dialogflow Messenger -->
+  <section>
+    <h2>Sobre nossos cursos</h2>
+    <ul>
+      <li>Curso ADS - Análise e Desenvolvimento de Sistemas</li>
+      <li>Curso BSI - Bacharelado em Sistemas de Informação</li>
+      <li>Curso BCC - Bacharelado em Ciência da Computação</li>
+      <li>Curso Enfermagem</li>
+      <li>Curso Medicina</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Fale com nosso assistente virtual</h2>
+    <p>Use o chat abaixo para obter suporte, consultar matrículas ou se matricular em cursos.</p>
+  </section>
+
   <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
   <df-messenger
     intent="WELCOME"
-    chat-title="bot-suporte-final"
-    agent-id="1ab08ee8-3c69-4a35-b18a-5e3977adf898"
-    language-code="pt-br">
-  </df-messenger>
-
+    chat-title="curso-online"
+    agent-id="a51b23bc-0827-412c-a26d-0f76359dec18"
+    language-code="pt-br"
+  ></df-messenger>
 </body>
 </html>
