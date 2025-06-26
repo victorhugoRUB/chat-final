@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { WebhookController } from './webhook.controller';
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { CursoModule } from '../cursos/curso.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [CursoModule],
   controllers: [WebhookController],
 })
 export class WebhookModule {}
