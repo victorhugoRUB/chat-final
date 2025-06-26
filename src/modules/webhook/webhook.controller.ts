@@ -22,9 +22,8 @@ export class WebhookController {
       case 'continuar-aluno':
         return this.handleValidarAluno(params);
 
-      case 'visualizar-matricula': {
+      case 'visualizar-matricula':
         return this.handleVisualizarMatricula(params, contexts);
-      }
 
       case 'registrar-matricula':
         return this.handleRegistrarMatricula(params, contexts);
